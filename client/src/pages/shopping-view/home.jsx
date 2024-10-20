@@ -103,7 +103,7 @@ function ShoppingHome() {
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide((prevSlide) => (prevSlide + 1) % featureImageList.length);
-    }, 15000);
+    }, 5000);
 
     return () => clearInterval(timer);
   }, [featureImageList]);
@@ -126,10 +126,10 @@ function ShoppingHome() {
   return (
     <div className="flex flex-col min-h-screen">
       <div className="relative w-full h-[600px] overflow-hidden">
-        {slides && slides.length > 0
-          ? slides.map((slide, index) => (
+        {featureImageList && featureImageList.length > 0
+          ? featureImageList.map((slide, index) => (
               <img
-                src={slide}
+                src={slide?.image}
                 key={index}
                 className={`${
                   index === currentSlide ? "opacity-100" : "opacity-0"
@@ -143,7 +143,8 @@ function ShoppingHome() {
           onClick={() =>
             setCurrentSlide(
               (prevSlide) =>
-                (prevSlide - 1 + slides.length) % slides.length
+                (prevSlide - 1 + featureImageList.length) %
+                featureImageList.length
             )
           }
           className="absolute transform -translate-y-1/2 top-1/2 left-4 bg-white/80"
@@ -154,7 +155,9 @@ function ShoppingHome() {
           variant="outline"
           size="icon"
           onClick={() =>
-            setCurrentSlide((prevSlide) => (prevSlide + 1) % slides.length)
+            setCurrentSlide(
+              (prevSlide) => (prevSlide + 1) % featureImageList.length
+            )
           }
           className="absolute transform -translate-y-1/2 top-1/2 right-4 bg-white/80"
         >
