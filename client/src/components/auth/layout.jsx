@@ -6,7 +6,7 @@ function AuthLayout() {
       <div className="items-center justify-center hidden w-1/2 px-12 bg-black lg:flex">
         <div className="max-w-md space-y-2 text-center text-primary-foreground">
           <h1 className="text-4xl font-extrabold tracking-tight">
-            Tyenda
+            Teenda
           </h1>
           <p className="text-lg">
             Shop smarter, live brighter!
