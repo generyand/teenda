@@ -3,76 +3,83 @@ import { Button } from "../ui/button";
 import { brandOptionsMap, categoryOptionsMap } from "@/config";
 import { Badge } from "../ui/badge";
 
-function ShoppingProductTile({
-  product,
-  handleGetProductDetails,
-  handleAddtoCart,
-}) {
+const ShoppingProductTile = ({ product, handleGetProductDetails, handleAddtoCart }) => {
+  const isOutOfStock = product?.totalStock === 0;
+  const isLowStock = product?.totalStock < 10;
+  const isOnSale = product?.salePrice > 0;
+
+  const handleClick = () => handleGetProductDetails(product?._id);
+  const handleKeyDown = (event) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      handleClick();
+    }
+  };
+
   return (
-    <Card className="w-full max-w-sm mx-auto">
-      <div onClick={() => handleGetProductDetails(product?._id)}>
-        <div className="relative">
+    <Card className="w-full max-w-sm mx-auto overflow-hidden transition-shadow duration-300 hover:shadow-lg">
+      <div
+        onClick={handleClick}
+        onKeyDown={handleKeyDown}
+        tabIndex="0"
+        role="button"
+        aria-label={`View details for ${product?.title}`}
+        className="cursor-pointer"
+      >
+        <div className="relative overflow-hidden aspect-square">
           <img
             src={product?.image}
             alt={product?.title}
-            className="w-full h-[300px] object-cover rounded-t-lg"
+            className="object-cover w-full h-full transition-transform duration-300 hover:scale-105"
           />
-          {product?.totalStock === 0 ? (
-            <Badge className="absolute top-2 left-2 bg-red-500 hover:bg-red-600">
+          {isOutOfStock && (
+            <Badge className="absolute px-2 py-1 text-xs font-semibold text-white bg-red-500 top-2 right-2">
               Out Of Stock
             </Badge>
-          ) : product?.totalStock < 10 ? (
-            <Badge className="absolute top-2 left-2 bg-red-500 hover:bg-red-600">
-              {`Only ${product?.totalStock} items left`}
+          )}
+          {!isOutOfStock && isLowStock && (
+            <Badge className="absolute px-2 py-1 text-xs font-semibold text-white bg-yellow-500 top-2 right-2">
+              Only {product?.totalStock} left
             </Badge>
-          ) : product?.salePrice > 0 ? (
-            <Badge className="absolute top-2 left-2 bg-red-500 hover:bg-red-600">
+          )}
+          {isOnSale && (
+            <Badge className="absolute px-2 py-1 text-xs font-semibold text-white bg-green-500 top-2 left-2">
               Sale
             </Badge>
-          ) : null}
+          )}
         </div>
         <CardContent className="p-4">
-          <h2 className="text-xl font-bold mb-2">{product?.title}</h2>
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-[16px] text-muted-foreground">
-              {categoryOptionsMap[product?.category]}
-            </span>
-            <span className="text-[16px] text-muted-foreground">
-              {brandOptionsMap[product?.brand]}
-            </span>
+          <h2 className="mb-1 text-lg font-semibold truncate">{product?.title}</h2>
+          <div className="flex items-center justify-between mb-2 text-sm text-gray-600">
+            <span>{categoryOptionsMap[product?.category]}</span>
+            <span>{brandOptionsMap[product?.brand]}</span>
           </div>
-          <div className="flex justify-between items-center mb-2">
-            <span
-              className={`${
-                product?.salePrice > 0 ? "line-through" : ""
-              } text-lg font-semibold text-primary`}
-            >
-              ${product?.price}
+          <div className="flex items-center space-x-2">
+            <span className={`text-lg font-bold ${isOnSale ? 'text-gray-400 line-through' : 'text-primary'}`}>
+              ${product?.price.toFixed(2)}
             </span>
-            {product?.salePrice > 0 ? (
-              <span className="text-lg font-semibold text-primary">
-                ${product?.salePrice}
+            {isOnSale && (
+              <span className="text-lg font-bold text-green-600">
+                ${product?.salePrice.toFixed(2)}
               </span>
-            ) : null}
+            )}
           </div>
         </CardContent>
       </div>
-      <CardFooter>
-        {product?.totalStock === 0 ? (
-          <Button className="w-full opacity-60 cursor-not-allowed">
-            Out Of Stock
-          </Button>
-        ) : (
-          <Button
-            onClick={() => handleAddtoCart(product?._id, product?.totalStock)}
-            className="w-full"
-          >
-            Add to cart
-          </Button>
-        )}
+      <CardFooter className="p-4 pt-0">
+        <Button
+          onClick={() => handleAddtoCart(product?._id, product?.totalStock)}
+          className={`w-full transition-colors ${
+            isOutOfStock
+              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              : 'bg-primary hover:bg-primary-dark'
+          }`}
+          disabled={isOutOfStock}
+        >
+          {isOutOfStock ? 'Out Of Stock' : 'Add to Cart'}
+        </Button>
       </CardFooter>
     </Card>
   );
-}
+};
 
 export default ShoppingProductTile;

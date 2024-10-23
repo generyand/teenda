@@ -1,11 +1,12 @@
 import {
-  BadgeCheck,
   ChartNoAxesCombined,
   LayoutDashboard,
   ShoppingBasket,
+  FileText,
+  ChevronRight,
 } from "lucide-react";
 import { Fragment } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "../ui/sheet";
 
 const adminSidebarMenuItems = [
@@ -13,74 +14,96 @@ const adminSidebarMenuItems = [
     id: "dashboard",
     label: "Dashboard",
     path: "/admin/dashboard",
-    icon: <LayoutDashboard />,
+    icon: LayoutDashboard,
   },
   {
     id: "products",
     label: "Products",
     path: "/admin/products",
-    icon: <ShoppingBasket />,
+    icon: ShoppingBasket,
   },
   {
     id: "orders",
     label: "Orders",
     path: "/admin/orders",
-    icon: <BadgeCheck />,
+    icon: FileText,
   },
 ];
 
-function MenuItems({ setOpen }) {
+const MenuItems = ({ setOpen }) => {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const handleNavigation = (path) => {
+    navigate(path);
+    setOpen && setOpen(false);
+  };
 
   return (
-    <nav className="mt-8 flex-col flex gap-2">
-      {adminSidebarMenuItems.map((menuItem) => (
-        <div
-          key={menuItem.id}
-          onClick={() => {
-            navigate(menuItem.path);
-            setOpen ? setOpen(false) : null;
-          }}
-          className="flex cursor-pointer text-xl items-center gap-2 rounded-md px-3 py-2 text-muted-foreground hover:bg-muted hover:text-foreground"
-        >
-          {menuItem.icon}
-          <span>{menuItem.label}</span>
-        </div>
-      ))}
+    <nav className="flex flex-col gap-1 mt-8">
+      {adminSidebarMenuItems.map((menuItem) => {
+        const isActive = location.pathname === menuItem.path;
+        return (
+          <button
+            key={menuItem.id}
+            onClick={() => handleNavigation(menuItem.path)}
+            className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+              isActive
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+            }`}
+          >
+            <menuItem.icon size={20} />
+            <span>{menuItem.label}</span>
+            {isActive && <ChevronRight size={16} className="ml-auto" />}
+          </button>
+        );
+      })}
     </nav>
   );
-}
+};
 
-function AdminSideBar({ open, setOpen }) {
+const AdminSideBar = ({ open, setOpen }) => {
   const navigate = useNavigate();
 
   return (
     <Fragment>
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent side="left" className="w-64">
+        <SheetContent side="left" className="w-64 p-0">
           <div className="flex flex-col h-full">
-            <SheetHeader className="border-b">
-              <SheetTitle className="flex gap-2 mt-5 mb-5">
-                <ChartNoAxesCombined size={30} />
-                <h1 className="text-2xl font-extrabold">Admin Panel</h1>
+            <SheetHeader className="p-4 border-b">
+              <SheetTitle asChild>
+                <button
+                  onClick={() => navigate("/admin/dashboard")}
+                  className="flex items-center gap-2 text-left"
+                >
+                  <ChartNoAxesCombined size={24} />
+                  <span className="text-xl font-bold">Admin Panel</span>
+                </button>
               </SheetTitle>
             </SheetHeader>
-            <MenuItems setOpen={setOpen} />
+            <div className="flex-1 px-3 py-4 overflow-auto">
+              <MenuItems setOpen={setOpen} />
+            </div>
           </div>
         </SheetContent>
       </Sheet>
-      <aside className="hidden w-64 flex-col border-r bg-background p-6 lg:flex">
-        <div
-          onClick={() => navigate("/admin/dashboard")}
-          className="flex cursor-pointer items-center gap-2"
-        >
-          <ChartNoAxesCombined size={30} />
-          <h1 className="text-2xl font-extrabold">Admin Panel</h1>
+      <aside className="flex-col hidden w-64 border-r lg:flex bg-background">
+        <div className="p-4 border-b">
+          <button
+            onClick={() => navigate("/admin/dashboard")}
+            className="flex items-center gap-2 text-xl font-bold"
+          >
+            <ChartNoAxesCombined size={24} />
+            <span>Admin Panel</span>
+          </button>
         </div>
-        <MenuItems />
+        <div className="flex-1 px-3 py-4 overflow-auto">
+          <MenuItems />
+        </div>
       </aside>
     </Fragment>
   );
-}
+};
 
 export default AdminSideBar;
