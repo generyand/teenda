@@ -1,147 +1,107 @@
 import { useEffect, useState } from "react";
-import CommonForm from "../common/form";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
-import { addressFormControls } from "@/config";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  addNewAddress,
-  deleteAddress,
-  editaAddress,
-  fetchAllAddresses,
-} from "@/store/shop/address-slice";
-import AddressCard from "./address-card";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Button } from "../ui/button";
 import { useToast } from "../ui/use-toast";
-
-const initialAddressFormData = {
-  address: "",
-  city: "",
-  phone: "",
-  pincode: "",
-  notes: "",
-};
+import AddressCard from "./address-card";
+import { fetchAllAddresses, deleteAddress } from "@/store/shop/address-slice";
+import { useConfirmDialog } from "../../hooks/useConfirmDialog";
+import ConfirmDialog from "./ConfirmDialog";
+import { Plus } from "lucide-react";
+import AddressDialog from "./address-dialog";
 
 function Address({ setCurrentSelectedAddress, selectedId }) {
-  const [formData, setFormData] = useState(initialAddressFormData);
-  const [currentEditedId, setCurrentEditedId] = useState(null);
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
-  const { addressList } = useSelector((state) => state.shopAddress);
+  const { addressList, loading } = useSelector((state) => state.shopAddress);
   const { toast } = useToast();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingAddress, setEditingAddress] = useState(null);
 
-  function handleManageAddress(event) {
-    event.preventDefault();
+  const { isOpen, message, showConfirmDialog, handleConfirm, handleCancel } = useConfirmDialog();
 
-    if (addressList.length >= 3 && currentEditedId === null) {
-      setFormData(initialAddressFormData);
-      toast({
-        title: "You can add max 3 addresses",
-        variant: "destructive",
-      });
-
-      return;
-    }
-
-    currentEditedId !== null
-      ? dispatch(
-          editaAddress({
-            userId: user?.id,
-            addressId: currentEditedId,
-            formData,
+  const handleDeleteAddress = (addressToDelete) => {
+    showConfirmDialog(
+      "Are you sure you want to delete this address?",
+      () => {
+        dispatch(deleteAddress({ userId: user?.id, addressId: addressToDelete._id }))
+          .then((data) => {
+            if (data?.payload?.success) {
+              dispatch(fetchAllAddresses(user?.id));
+              toast({ title: "Address deleted successfully" });
+            }
           })
-        ).then((data) => {
-          if (data?.payload?.success) {
-            dispatch(fetchAllAddresses(user?.id));
-            setCurrentEditedId(null);
-            setFormData(initialAddressFormData);
-            toast({
-              title: "Address updated successfully",
-            });
-          }
-        })
-      : dispatch(
-          addNewAddress({
-            ...formData,
-            userId: user?.id,
-          })
-        ).then((data) => {
-          if (data?.payload?.success) {
-            dispatch(fetchAllAddresses(user?.id));
-            setFormData(initialAddressFormData);
-            toast({
-              title: "Address added successfully",
-            });
-          }
-        });
-  }
-
-  function handleDeleteAddress(getCurrentAddress) {
-    dispatch(
-      deleteAddress({ userId: user?.id, addressId: getCurrentAddress._id })
-    ).then((data) => {
-      if (data?.payload?.success) {
-        dispatch(fetchAllAddresses(user?.id));
-        toast({
-          title: "Address deleted successfully",
-        });
+          .catch((error) => {
+            toast({ title: "Failed to delete address", variant: "destructive" });
+          });
       }
-    });
-  }
+    );
+  };
 
-  function handleEditAddress(getCuurentAddress) {
-    setCurrentEditedId(getCuurentAddress?._id);
-    setFormData({
-      ...formData,
-      address: getCuurentAddress?.address,
-      city: getCuurentAddress?.city,
-      phone: getCuurentAddress?.phone,
-      pincode: getCuurentAddress?.pincode,
-      notes: getCuurentAddress?.notes,
-    });
-  }
+  const handleEditAddress = (addressToEdit) => {
+    setEditingAddress(addressToEdit);
+    setIsDialogOpen(true);
+  };
 
-  function isFormValid() {
-    return Object.keys(formData)
-      .map((key) => formData[key].trim() !== "")
-      .every((item) => item);
-  }
+  const handleAddNewAddress = () => {
+    setEditingAddress(null);
+    setIsDialogOpen(true);
+  };
 
   useEffect(() => {
     dispatch(fetchAllAddresses(user?.id));
-  }, [dispatch]);
-
-  console.log(addressList, "addressList");
+  }, [dispatch, user?.id]);
 
   return (
-    <Card>
-      <div className="mb-5 p-3 grid grid-cols-1 sm:grid-cols-2  gap-2">
-        {addressList && addressList.length > 0
-          ? addressList.map((singleAddressItem) => (
-              <AddressCard
-                selectedId={selectedId}
-                handleDeleteAddress={handleDeleteAddress}
-                addressInfo={singleAddressItem}
-                handleEditAddress={handleEditAddress}
-                setCurrentSelectedAddress={setCurrentSelectedAddress}
-              />
-            ))
-          : null}
-      </div>
-      <CardHeader>
-        <CardTitle>
-          {currentEditedId !== null ? "Edit Address" : "Add New Address"}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <CommonForm
-          formControls={addressFormControls}
-          formData={formData}
-          setFormData={setFormData}
-          buttonText={currentEditedId !== null ? "Edit" : "Add"}
-          onSubmit={handleManageAddress}
-          isBtnDisabled={!isFormValid()}
-        />
-      </CardContent>
-    </Card>
+    <>
+      <Card className="max-w-4xl mx-auto shadow-lg">
+        <CardHeader className="flex items-center justify-between border-b bg-gray-50">
+          <CardTitle className="text-2xl font-bold text-gray-800">
+            Manage Addresses
+          </CardTitle>
+          <Button onClick={handleAddNewAddress} className="text-white bg-blue-600 hover:bg-blue-700">
+            <Plus className="w-4 h-4 mr-2" />
+            Add New Address
+          </Button>
+        </CardHeader>
+        <CardContent className="p-6">
+          {loading ? (
+            <div className="flex items-center justify-center h-64">
+              <div className="w-12 h-12 border-b-2 border-gray-900 rounded-full animate-spin"></div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              {addressList && addressList.length > 0 ? (
+                addressList.map((address) => (
+                  <AddressCard
+                    key={address._id}
+                    selectedId={selectedId}
+                    handleDeleteAddress={handleDeleteAddress}
+                    addressInfo={address}
+                    handleEditAddress={handleEditAddress}
+                    setCurrentSelectedAddress={setCurrentSelectedAddress}
+                  />
+                ))
+              ) : (
+                <p className="col-span-2 py-8 text-center text-gray-500">No addresses found. Click 'Add New Address' to add one.</p>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+      <AddressDialog
+        isOpen={isDialogOpen}
+        onClose={() => setIsDialogOpen(false)}
+        addressToEdit={editingAddress}
+        userId={user?.id}
+      />
+      <ConfirmDialog 
+        isOpen={isOpen}
+        message={message}
+        onConfirm={handleConfirm}
+        onCancel={handleCancel}
+      />
+    </>
   );
 }
 

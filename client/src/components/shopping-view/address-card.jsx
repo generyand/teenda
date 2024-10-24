@@ -1,39 +1,57 @@
+import { Pencil, Trash2 } from "lucide-react";
 import { Button } from "../ui/button";
-import { Card, CardContent, CardFooter } from "../ui/card";
-import { Label } from "../ui/label";
 
 function AddressCard({
-  addressInfo,
+  selectedId,
   handleDeleteAddress,
+  addressInfo,
   handleEditAddress,
   setCurrentSelectedAddress,
-  selectedId,
 }) {
+  const isSelected = selectedId === addressInfo._id;
+
   return (
-    <Card
-      onClick={
-        setCurrentSelectedAddress
-          ? () => setCurrentSelectedAddress(addressInfo)
-          : null
-      }
-      className={`cursor-pointer border-red-700 ${
-        selectedId?._id === addressInfo?._id
-          ? "border-red-900 border-[4px]"
-          : "border-black"
-      }`}
-    >
-      <CardContent className="grid p-4 gap-4">
-        <Label>Address: {addressInfo?.address}</Label>
-        <Label>City: {addressInfo?.city}</Label>
-        <Label>pincode: {addressInfo?.pincode}</Label>
-        <Label>Phone: {addressInfo?.phone}</Label>
-        <Label>Notes: {addressInfo?.notes}</Label>
-      </CardContent>
-      <CardFooter className="p-3 flex justify-between">
-        <Button onClick={() => handleEditAddress(addressInfo)}>Edit</Button>
-        <Button onClick={() => handleDeleteAddress(addressInfo)}>Delete</Button>
-      </CardFooter>
-    </Card>
+    <div className={`p-4 rounded-lg border ${isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}`}>
+      <div className="flex items-start justify-between mb-2">
+        <h4 className="text-lg font-semibold">{addressInfo.address}</h4>
+        <div className="flex space-x-2">
+          <Button
+            onClick={() => handleEditAddress(addressInfo)}
+            variant="outline"
+            size="sm"
+            className="p-1"
+            aria-label="Edit address"
+          >
+            <Pencil className="w-4 h-4 text-blue-500" />
+          </Button>
+          <Button
+            onClick={() => handleDeleteAddress(addressInfo)}
+            variant="outline"
+            size="sm"
+            className="p-1"
+            aria-label="Delete address"
+          >
+            <Trash2 className="w-4 h-4 text-red-500" />
+          </Button>
+        </div>
+      </div>
+      <p className="text-gray-600">{addressInfo.city}</p>
+      <p className="text-gray-600">{addressInfo.pincode}</p>
+      <p className="text-gray-600">{addressInfo.phone}</p>
+      {addressInfo.notes && (
+        <p className="mt-2 text-sm italic text-gray-500">{addressInfo.notes}</p>
+      )}
+      {setCurrentSelectedAddress && (
+        <Button
+          onClick={() => setCurrentSelectedAddress(addressInfo)}
+          variant={isSelected ? "default" : "outline"}
+          size="sm"
+          className="mt-3"
+        >
+          {isSelected ? "Selected" : "Select"}
+        </Button>
+      )}
+    </div>
   );
 }
 
