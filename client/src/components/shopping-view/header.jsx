@@ -22,14 +22,13 @@ import { logoutUser } from "@/store/auth-slice";
 import UserCartWrapper from "./cart-wrapper";
 import { useEffect, useState } from "react";
 import { fetchCartItems } from "@/store/shop/cart-slice";
-import { Label } from "../ui/label";
 
 function MenuItems() {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  function handleNavigate(getCurrentMenuItem) {
+  const handleNavigate = (getCurrentMenuItem) => {
     sessionStorage.removeItem("filters");
     const currentFilter =
       getCurrentMenuItem.id !== "home" &&
@@ -47,18 +46,18 @@ function MenuItems() {
           new URLSearchParams(`?category=${getCurrentMenuItem.id}`)
         )
       : navigate(getCurrentMenuItem.path);
-  }
+  };
 
   return (
     <nav className="flex flex-col gap-6 mb-3 lg:mb-0 lg:items-center lg:flex-row">
       {shoppingViewHeaderMenuItems.map((menuItem) => (
-        <Label
+        <button
           onClick={() => handleNavigate(menuItem)}
-          className="text-sm font-medium cursor-pointer"
+          className="text-sm font-medium text-gray-600 transition-colors duration-200 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
           key={menuItem.id}
         >
           {menuItem.label}
-        </Label>
+        </button>
       ))}
     </nav>
   );
@@ -71,51 +70,60 @@ function HeaderRightContent() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  function handleLogout() {
+  const handleLogout = () => {
     dispatch(logoutUser());
-  }
+  };
 
   useEffect(() => {
     dispatch(fetchCartItems(user?.id));
-  }, [dispatch]);
-
-  console.log(cartItems, "sangam");
+  }, [dispatch, user?.id]);
 
   return (
-    <div className="flex flex-col gap-4 lg:items-center lg:flex-row">
-      <Sheet open={openCartSheet} onOpenChange={() => setOpenCartSheet(false)}>
-        <Button
-          onClick={() => setOpenCartSheet(true)}
-          variant="outline"
-          size="icon"
-          className="relative"
-        >
-          <ShoppingCart className="w-6 h-6" />
-          <span className="absolute top-[-5px] right-[2px] font-bold text-sm">
-            {cartItems?.items?.length || 0}
-          </span>
-          <span className="sr-only">User cart</span>
-        </Button>
+    <div className="flex items-center space-x-4">
+      <Sheet open={openCartSheet} onOpenChange={setOpenCartSheet}>
+        <SheetTrigger asChild>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="relative p-2"
+            aria-label="Open cart"
+          >
+            <ShoppingCart className="w-5 h-5" />
+            {cartItems?.items?.length > 0 && (
+              <span className="absolute top-0 right-0 inline-flex items-center justify-center w-4 h-4 text-xs font-bold text-white bg-red-500 rounded-full">
+                {cartItems.items.length}
+              </span>
+            )}
+          </Button>
+        </SheetTrigger>
         <UserCartWrapper
           setOpenCartSheet={setOpenCartSheet}
-          cartItems={
-            cartItems && cartItems.items && cartItems.items.length > 0
-              ? cartItems.items
-              : []
-          }
+          cartItems={cartItems?.items || []}
         />
       </Sheet>
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Avatar className="bg-black">
-            <AvatarFallback className="font-extrabold text-white bg-black">
-              {user?.userName[0].toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="p-1"
+            aria-label="User menu"
+          >
+            <Avatar className="w-8 h-8 bg-gray-200">
+              <AvatarFallback className="text-sm font-semibold text-gray-700">
+                {user?.userName[0].toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+          </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent side="right" className="w-56">
-          <DropdownMenuLabel>Logged in as {user?.userName}</DropdownMenuLabel>
+        <DropdownMenuContent side="bottom" align="end" className="w-56">
+          <DropdownMenuLabel className="font-normal">
+            <div className="flex flex-col space-y-1">
+              <p className="text-sm font-medium leading-none">{user?.userName}</p>
+              <p className="text-xs leading-none text-gray-500">{user?.email}</p>
+            </div>
+          </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => navigate("/shop/account")}>
             <UserCog className="w-4 h-4 mr-2" />
@@ -133,31 +141,40 @@ function HeaderRightContent() {
 }
 
 function ShoppingHeader() {
-  const { isAuthenticated } = useSelector((state) => state.auth);
-
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-background">
-      <div className="flex items-center justify-between h-16 px-4 md:px-6">
-        <Link to="/shop/home" className="flex items-center gap-2">
-          <HousePlug className="w-6 h-6" />
-          <span className="font-bold">Teenda</span>
+    <header className="sticky top-0 z-40 w-full border-b bg-white/80 backdrop-blur-sm">
+      <div className="container flex items-center justify-between h-16 px-4 mx-auto md:px-6">
+        <Link to="/shop/home" className="flex items-center space-x-2">
+          {/* <HousePlug className="w-6 h-6 text-gray-800" /> */}
+          <span className="text-xl font-bold text-gray-900">Teenda</span>
         </Link>
         <Sheet>
           <SheetTrigger asChild>
-            <Button variant="outline" size="icon" className="lg:hidden">
-              <Menu className="w-6 h-6" />
-              <span className="sr-only">Toggle header menu</span>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="p-2 lg:hidden"
+              aria-label="Toggle menu"
+            >
+              <Menu className="w-5 h-5" />
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="w-full max-w-xs">
-            <MenuItems />
-            <HeaderRightContent />
+          <SheetContent side="left" className="w-full max-w-xs p-0">
+            <div className="flex flex-col h-full p-6">
+              <Link to="/shop/home" className="flex items-center mb-8 space-x-2">
+                <HousePlug className="w-6 h-6 text-gray-800" />
+                <span className="text-xl font-bold text-gray-900">Teenda</span>
+              </Link>
+              <MenuItems />
+              <div className="pt-6 mt-auto">
+                <HeaderRightContent />
+              </div>
+            </div>
           </SheetContent>
         </Sheet>
         <div className="hidden lg:block">
           <MenuItems />
         </div>
-
         <div className="hidden lg:block">
           <HeaderRightContent />
         </div>
