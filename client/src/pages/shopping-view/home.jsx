@@ -96,25 +96,27 @@ function ShoppingHome() {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
-      <section className="relative w-full h-[600px] overflow-hidden">
+      <section className="relative w-full h-[720px] overflow-hidden">
         {featureImageList?.map((slide, index) => (
-          <img
-            src={slide?.image}
-            key={index}
-            alt={`Feature ${index + 1}`}
-            className={`absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-1000 ${
-              index === currentSlide ? "opacity-100" : "opacity-0"
-            }`}
-          />
+          <div key={index} className="absolute inset-0">
+            <img
+              src={slide?.image}
+              alt={`Feature ${index + 1}`}
+              className={`absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-1000 ${
+                index === currentSlide ? "opacity-100" : "opacity-0"
+              }`}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-gray-700/20 to-transparent"></div>
+          </div>
         ))}
-        <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="text-center text-white">
-            <h1 className="mb-4 text-5xl font-bold">Welcome to Our Store</h1>
-            <p className="mb-8 text-xl">Discover the latest trends and styles</p>
+        <div className="absolute inset-x-0 z-10 flex items-center justify-center bottom-10">
+          <div className="text-center">
+            <h1 className="mb-4 text-5xl font-bold text-white">Welcome to Our Store</h1>
+            <p className="mb-8 text-xl text-white">Discover the latest trends and styles</p>
             <Button
               onClick={() => navigate('/shop/listing')}
               size="lg"
-              className="text-black bg-white hover:bg-gray-200"
+              className="px-6 py-3 font-bold text-white transition duration-300 ease-in-out transform bg-blue-600 rounded-full shadow-lg hover:bg-blue-700 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
             >
               Shop Now
             </Button>
@@ -124,7 +126,7 @@ function ShoppingHome() {
           variant="outline"
           size="icon"
           onClick={() => setCurrentSlide((prevSlide) => (prevSlide - 1 + featureImageList.length) % featureImageList.length)}
-          className="absolute transform -translate-y-1/2 top-1/2 left-4 bg-white/80 hover:bg-white"
+          className="absolute z-10 transform -translate-y-1/2 top-1/2 left-4 bg-white/80 hover:bg-white"
         >
           <ChevronLeftIcon className="w-6 h-6" />
         </Button>
@@ -132,7 +134,7 @@ function ShoppingHome() {
           variant="outline"
           size="icon"
           onClick={() => setCurrentSlide((prevSlide) => (prevSlide + 1) % featureImageList.length)}
-          className="absolute transform -translate-y-1/2 top-1/2 right-4 bg-white/80 hover:bg-white"
+          className="absolute z-10 transform -translate-y-1/2 top-1/2 right-4 bg-white/80 hover:bg-white"
         >
           <ChevronRightIcon className="w-6 h-6" />
         </Button>
